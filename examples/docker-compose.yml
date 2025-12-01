@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  playwright-mcp:
+    image: python:3.10-slim
+    container_name: playwright-universal-mcp
+    restart: unless-stopped
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    environment:
+      - DISPLAY=${DISPLAY:-:0}
+    command: >
+      bash -c "
+        pip install playwright-universal-mcp &&
+        playwright install chromium &&
+        playwright-universal-mcp --browser chromium --headless
+      "
