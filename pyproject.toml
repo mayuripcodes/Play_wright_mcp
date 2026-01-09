@@ -27,10 +27,6 @@ dev = [
   "flake8"
 ]
 
-mcp = [
-  "git+https://github.com/microsoft/mcp-python-sdk.git"
-]
-
 [project.urls]
 "Homepage" = "https://github.com/xkiranj/playwright-universal-mcp"
 "Bug Tracker" = "https://github.com/xkiranj/playwright-universal-mcp/issues"
