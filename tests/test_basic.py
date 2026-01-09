@@ -17,3 +17,4 @@ def test_imports():
     from playwright_universal_mcp import cli, server
     assert cli is not None
     assert server is not None
+
