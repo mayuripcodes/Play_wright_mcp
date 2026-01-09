@@ -4,28 +4,26 @@ Universal Playwright MCP Server implementation.
 """
 
 import asyncio
-import base64
-import sys
 import logging
+import sys
 from typing import Dict, Optional
 
 from pydantic import AnyUrl
-from playwright.async_api import async_playwright, Browser, Page, BrowserContext
-
+from playwright.async_api import Browser, BrowserContext, Page, async_playwright
 
 # =========================
 # MCP SAFE IMPORT
 # =========================
 try:
     from modelcontextprotocol.server.models import InitializationOptions
-    import modelcontextprotocol.types as types
     from modelcontextprotocol.server import NotificationOptions, Server
     import modelcontextprotocol.server.stdio
+    import modelcontextprotocol.types as types
 except ImportError as exc:
     raise RuntimeError(
-        "\nMCP SDK is required to run this server.\n"
+        "MCP SDK is required to run this server.\n"
         "Install it with:\n"
-        "pip install git+https://github.com/microsoft/mcp-python-sdk.git\n"
+        "pip install git+https://github.com/microsoft/mcp-python-sdk.git"
     ) from exc
 
 
@@ -63,12 +61,23 @@ current_page_id: Optional[str] = None
 server = Server("playwright-universal-mcp")
 
 
-def configure(browser_type="chromium", headless=True, debug=False, browser_args=None):
+def configure(
+    browser_type: str = "chromium",
+    headless: bool = True,
+    debug: bool = False,
+    browser_args: Optional[list[str]] = None,
+) -> None:
+    """Configure runtime options."""
     CONFIG["browser_type"] = browser_type
     CONFIG["headless"] = headless
     CONFIG["debug"] = debug
+
     if browser_args:
-        CONFIG["browser_args"] = ["--no-sandbox", "--disable-setuid-sandbox"] + browser_args
+        CONFIG["browser_args"] = [
+            "--no-sandbox",
+            "--disable-setuid-sandbox",
+        ] + browser_args
+
     logger.setLevel(logging.DEBUG if debug else logging.INFO)
 
 
@@ -77,6 +86,7 @@ def configure(browser_type="chromium", headless=True, debug=False, browser_args=
 # =========================
 @server.list_resources()
 async def list_resources() -> list[types.Resource]:
+    """Expose screenshot resources."""
     return [
         types.Resource(
             uri=AnyUrl(f"screenshot://{pid}"),
@@ -90,6 +100,7 @@ async def list_resources() -> list[types.Resource]:
 
 @server.read_resource()
 async def read_resource(uri: AnyUrl) -> bytes:
+    """Return screenshot bytes."""
     page_id = uri.host
     if page_id not in pages:
         raise ValueError(f"Page not found: {page_id}")
@@ -98,13 +109,15 @@ async def read_resource(uri: AnyUrl) -> bytes:
 
 @server.list_resource_templates()
 async def list_resource_templates() -> list[types.ResourceTemplate]:
+    """No resource templates."""
     return []
 
 
 # =========================
 # BROWSER CONTROL
 # =========================
-async def ensure_browser():
+async def ensure_browser() -> None:
+    """Launch browser if not already running."""
     global playwright_instance, browser, context, current_page_id
 
     if playwright_instance:
@@ -125,6 +138,7 @@ async def ensure_browser():
 
 
 def get_page(page_id: Optional[str]) -> Page:
+    """Return active page."""
     pid = page_id or current_page_id
     if pid not in pages:
         raise ValueError(f"Page not found: {pid}")
@@ -136,10 +150,11 @@ def get_page(page_id: Optional[str]) -> Page:
 # =========================
 @server.list_tools()
 async def list_tools() -> list[types.Tool]:
+    """List supported tools."""
     return [
         types.Tool(
             name="navigate",
-            description="Navigate to URL",
+            description="Navigate to a URL",
             inputSchema={
                 "type": "object",
                 "properties": {"url": {"type": "string"}},
@@ -150,14 +165,23 @@ async def list_tools() -> list[types.Tool]:
 
 
 @server.call_tool()
-async def call_tool(name: str, arguments: dict | None):
+async def call_tool(
+    name: str,
+    arguments: Optional[dict],
+) -> list[types.TextContent]:
+    """Execute tool calls."""
     await ensure_browser()
-    arguments = arguments or {}
+    args = arguments or {}
 
     if name == "navigate":
-        page = get_page(arguments.get("page_id"))
-        await page.goto(arguments["url"])
-        return [types.TextContent(type="text", text=f"Navigated to {arguments['url']}")]
+        page = get_page(args.get("page_id"))
+        await page.goto(args["url"])
+        return [
+            types.TextContent(
+                type="text",
+                text=f"Navigated to {args['url']}",
+            )
+        ]
 
     raise ValueError(f"Unknown tool: {name}")
 
@@ -165,7 +189,8 @@ async def call_tool(name: str, arguments: dict | None):
 # =========================
 # CLEANUP
 # =========================
-async def cleanup():
+async def cleanup() -> None:
+    """Shutdown browser resources."""
     if browser:
         await browser.close()
     if playwright_instance:
@@ -175,13 +200,18 @@ async def cleanup():
 # =========================
 # MAIN
 # =========================
-async def main():
+async def main() -> None:
+    """Run MCP server."""
     logger.info("Starting Playwright Universal MCP Server")
+
     try:
-        async with modelcontextprotocol.server.stdio.stdio_server() as (r, w):
+        async with modelcontextprotocol.server.stdio.stdio_server() as (
+            read_stream,
+            write_stream,
+        ):
             await server.run(
-                r,
-                w,
+                read_stream,
+                write_stream,
                 InitializationOptions(
                     server_name="playwright-universal-mcp",
                     server_version="0.1.0",
