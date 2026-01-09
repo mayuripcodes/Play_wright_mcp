@@ -18,6 +18,7 @@ classifiers = [
 ]
 dependencies = [
     "playwright>=1.25.0",
+    "pydantic>=1.10"
 ]
 requires-python = ">=3.8"
 
