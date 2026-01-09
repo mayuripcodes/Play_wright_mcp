@@ -13,11 +13,20 @@ import sys
 import logging
 from typing import Dict, List, Optional, Any, Union
 
-from modelcontextprotocol.server.models import InitializationOptions
-import modelcontextprotocol.types as types
-from modelcontextprotocol.server import NotificationOptions, Server
+def _import_mcp():
+    try:
+        from modelcontextprotocol.server.models import InitializationOptions
+        import modelcontextprotocol.types as types
+        from modelcontextprotocol.server import NotificationOptions, Server
+        import modelcontextprotocol.server.stdio
+        return InitializationOptions, types, NotificationOptions, Server
+    except ImportError:
+        raise RuntimeError(
+            "MCP SDK not installed.\n"
+            "Install with:\n"
+            "pip install git+https://github.com/microsoft/mcp-python-sdk.git"
+        )
 from pydantic import AnyUrl
-import modelcontextprotocol.server.stdio
 
 from playwright.async_api import async_playwright, Browser, Page, BrowserContext
 
