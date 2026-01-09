@@ -9,7 +9,12 @@ import sys
 from typing import Dict, Optional
 
 from pydantic import AnyUrl
-from playwright.async_api import Browser, BrowserContext, Page, async_playwright
+from playwright.async_api import (
+    Browser,
+    BrowserContext,
+    Page,
+    async_playwright,
+)
 
 # =========================
 # MCP SAFE IMPORT
