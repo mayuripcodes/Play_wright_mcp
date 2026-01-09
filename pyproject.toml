@@ -33,3 +33,8 @@ playwright-universal-mcp = "playwright_universal_mcp.cli:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[project.optional-dependencies]
+mcp = [
+    "git+https://github.com/microsoft/mcp-python-sdk.git"
+]
