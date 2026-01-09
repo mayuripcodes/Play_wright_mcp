@@ -27,7 +27,8 @@ jobs:
         # Set environment variable to skip browser download
         export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
         # Install MCP Python SDK manually
-        pip install git+https://github.com/microsoft/mcp-python-sdk.git
+        # pip install git+https://github.com/microsoft/mcp-python-sdk.git
+        pip install mcp
         # Install our package
         pip install -e .
     - name: Lint with flake8
