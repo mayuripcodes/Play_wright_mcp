@@ -2,7 +2,6 @@
 Basic tests for the playwright_universal_mcp package.
 """
 
-import pytest
 from playwright_universal_mcp import __version__
 
 
@@ -17,4 +16,3 @@ def test_imports():
     from playwright_universal_mcp import cli, server
     assert cli is not None
     assert server is not None
-
