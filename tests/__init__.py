@@ -1,2 +1,1 @@
 """Test package for playwright-universal-mcp."""
-
